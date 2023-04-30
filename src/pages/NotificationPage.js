@@ -177,7 +177,7 @@ export default function NotificationPage() {
       </Helmet>
 
       <Container style={{ minWidth: '100%' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+        <Stack direction="row" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
@@ -205,14 +205,26 @@ export default function NotificationPage() {
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { Id, time, type } = row;
                     const selectedUser = selected.indexOf(Id) !== -1;
-                    const content = (
-                      <Box>
-                        User <strong style={{ cursor: 'pointer', color: 'blue' }}>{row.account_id}</strong> clock in
-                      </Box>
-                    );
+                    let content = <></>;
+                    if (type === 'clock_in' || type === 'clockin') {
+                      content = (
+                        <Box>
+                          User <strong style={{ cursor: 'pointer', color: 'blue' }}>{row.account_id}</strong> clock in
+                        </Box>
+                      );
+                    } else {
+                      content = (
+                        <Box>
+                          User <strong style={{ cursor: 'pointer', color: 'blue' }}>{row.account_id}</strong> has
+                          deliveried package{' '}
+                          <strong style={{ cursor: 'pointer', color: 'blue' }}>{row.package_id}</strong>
+                        </Box>
+                      );
+                    }
+                    console.log(content);
                     return (
                       <TableRow hover key={Id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox" alignItems="center">
+                        <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, Id)} />
                         </TableCell>
 
@@ -220,12 +232,7 @@ export default function NotificationPage() {
 
                         {/* <TableCell>{row.package_id}</TableCell> */}
 
-                        <TableCell>
-                          {type === 'clock_in' || type === 'clockin' ? content : null}
-                          {/* <Text status="warning" size="sm">
-                            {data?.time.slice(11, 19)}, {data?.time.slice(0, 10)}
-                          </Text> */}
-                        </TableCell>
+                        <TableCell>{content}</TableCell>
 
                         <TableCell align="left">
                           <Label color="success">{sentenceCase(type)}</Label>
