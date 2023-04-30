@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 // @mui
 import {
   Card,
@@ -31,8 +31,8 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 
-// mock
 import { BASE_URL } from '../config/constant';
+import DrawerCustom from '../sections/@dashboard/common/DrawerCustom';
 
 // ----------------------------------------------------------------------
 
@@ -96,11 +96,29 @@ export default function UserPage() {
 
   const [userList, setUserList] = useState([]);
 
-  const handleOpenMenu = (event) => {
+  const [selectedUser, setSelectedUser] = useState();
+
+  const [isOpenDrawer, setOpenDrawer] = useState();
+
+  const [menuKey, setMenuKey] = useState();
+
+  const toggleDrawer = (key) => {
+    setOpen(null);
+    if (key) {
+      setMenuKey(key);
+      setOpenDrawer(true);
+    } else {
+      setOpenDrawer(false);
+    }
+  };
+
+  const handleOpenMenu = (event, item) => {
+    setSelectedUser(item);
     setOpen(event.currentTarget);
   };
 
   const handleCloseMenu = () => {
+    setSelectedUser(null);
     setOpen(null);
   };
 
@@ -154,7 +172,7 @@ export default function UserPage() {
 
   const isNotFound = !filteredUsers.length && !!filterName;
 
-  useEffect(() => {
+  const reload = () => {
     (async () => {
       async function fetchData() {
         const response = await axios.get(`${BASE_URL}/admin/users`);
@@ -169,6 +187,30 @@ export default function UserPage() {
           console.log(error);
         });
     })();
+  };
+
+  const onSubmit = (value) => {
+    if (menuKey === 'editUser') {
+      (async () => {
+        async function fetchData() {
+          const response = await axios.post(`${BASE_URL}/user_update`, value);
+          return response;
+        }
+        fetchData()
+          .then((response) => {
+            // console.log(response?.data?.data);
+            setOpenDrawer(false);
+            reload();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })();
+    }
+  };
+
+  useEffect(() => {
+    reload();
   }, []);
 
   return (
@@ -178,7 +220,7 @@ export default function UserPage() {
       </Helmet>
 
       <Container style={{ minWidth: '100%' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+        <Stack direction="row" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
@@ -215,11 +257,11 @@ export default function UserPage() {
 
                     return (
                       <TableRow hover key={Id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox" alignItems="center">
+                        <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, Id)} />
                         </TableCell>
 
-                        <TableCell component="th" scope="row" padding="none" alignItems="center">
+                        <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" spacing={2} paddingLeft={2}>
                             <Avatar alt={displayName} src={photoURL} />
                             {/* <Typography variant="subtitle2" noWrap>
@@ -251,7 +293,7 @@ export default function UserPage() {
                           </Label>
                         </TableCell>
                         <TableCell>
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={(event) => handleOpenMenu(event, row)}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -313,7 +355,7 @@ export default function UserPage() {
         PaperProps={{
           sx: {
             p: 1,
-            width: 140,
+            width: 180,
             '& .MuiMenuItem-root': {
               px: 1,
               typography: 'body2',
@@ -322,7 +364,12 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={() => toggleDrawer('assignPackages')}>
+          <Iconify icon={'eva:car-fill'} sx={{ mr: 2 }} />
+          Assign packages
+        </MenuItem>
+
+        <MenuItem onClick={() => toggleDrawer('editUser')}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
@@ -332,6 +379,14 @@ export default function UserPage() {
           Delete
         </MenuItem>
       </Popover>
+
+      <DrawerCustom
+        menu={menuKey}
+        open={isOpenDrawer}
+        value={selectedUser}
+        onClose={() => toggleDrawer()}
+        onSubmit={onSubmit}
+      />
     </>
   );
 }

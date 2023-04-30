@@ -21,7 +21,6 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
-  Drawer,
   Box,
 } from '@mui/material';
 import axios from 'axios';
@@ -32,20 +31,19 @@ import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+
 // mock
 import { BASE_URL } from '../config/constant';
-import { fMoney } from '../utils/formatNumber';
-import DrawerCustom from '../sections/@dashboard/common/DrawerCustom';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'ID', alignRight: false },
-  { id: 'description', label: 'Location', alignRight: false },
-  { id: 'weight', label: 'Weight', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: 'date', label: 'Create Date', alignRight: false },
-  { id: 'price', label: 'Price', alignRight: false },
+  //   { id: 'account_id', label: 'Account Id', alignRight: false },
+  //   { id: 'package_id', label: 'Package Id', alignRight: false },
+  { id: 'content', label: 'Content', alignRight: false },
+  { id: 'type', label: 'Type', alignRight: false },
+  { id: 'time', label: 'Time', alignRight: false },
+
   { id: 'action', label: 'Action', alignRight: false },
 ];
 
@@ -75,12 +73,12 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.description.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function PackagesPage() {
+export default function NotificationPage() {
   const [open, setOpen] = useState(null);
 
   const [page, setPage] = useState(0);
@@ -89,22 +87,16 @@ export default function PackagesPage() {
 
   const [selected, setSelected] = useState([]);
 
-  const [orderBy, setOrderBy] = useState('id');
+  const [orderBy, setOrderBy] = useState('Id');
 
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [packageList, setPackageList] = useState([]);
-
-  const [isOpenNew, setOpenNew] = useState(false);
+  const [notiList, setNotiList] = useState([]);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
-  };
-
-  const toggleDrawer = () => {
-    setOpenNew(!isOpenNew);
   };
 
   const handleCloseMenu = () => {
@@ -119,18 +111,18 @@ export default function PackagesPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = packageList.map((n) => n.id);
+      const newSelecteds = notiList.map((n) => n.Id);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (event, Id) => {
+    const selectedIndex = selected.indexOf(Id);
     let newSelected = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, Id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -155,21 +147,22 @@ export default function PackagesPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - packageList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - notiList.length) : 0;
 
-  const filteredPackages = applySortFilter(packageList, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(notiList, getComparator(order, orderBy), filterName);
 
-  const isNotFound = !filteredPackages.length && !!filterName;
+  const isNotFound = !filteredUsers.length && !!filterName;
 
   useEffect(() => {
     (async () => {
       async function fetchData() {
-        const response = await axios.get(`${BASE_URL}/admin/packages`);
+        const response = await axios.get(`${BASE_URL}/admin/notifications`);
         return response;
       }
       fetchData()
         .then((response) => {
-          setPackageList(response?.data?.data);
+          setNotiList(response?.data?.data);
+          console.log(response?.data?.data);
         })
         .catch((error) => {
           console.log(error);
@@ -180,16 +173,16 @@ export default function PackagesPage() {
   return (
     <>
       <Helmet>
-        <title> Packages </title>
+        <title> User </title>
       </Helmet>
 
       <Container style={{ minWidth: '100%' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Packages
+            User
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />} onClick={() => toggleDrawer()}>
-            New
+          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+            New User
           </Button>
         </Stack>
 
@@ -203,41 +196,44 @@ export default function PackagesPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={packageList.length}
+                  rowCount={notiList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredPackages.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const selectedUser = selected.indexOf(row.id) !== -1;
+                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    const { Id, time, type } = row;
+                    const selectedUser = selected.indexOf(Id) !== -1;
+                    const content = (
+                      <Box>
+                        User <strong style={{ cursor: 'pointer', color: 'blue' }}>{row.account_id}</strong> clock in
+                      </Box>
+                    );
                     return (
-                      <TableRow hover key={row.id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, row.id)} />
+                      <TableRow hover key={Id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                        <TableCell padding="checkbox" alignItems="center">
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, Id)} />
                         </TableCell>
 
-                        <TableCell component="th" scope="row">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            {row.id}
-                          </Stack>
-                        </TableCell>
+                        {/* <TableCell>{row.account_id}</TableCell> */}
 
-                        <TableCell align="left">{row.description}</TableCell>
+                        {/* <TableCell>{row.package_id}</TableCell> */}
 
-                        <TableCell align="left">{row.weight} (KG)</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={(row.status === 'waiting' && 'warning') || 'success'}>
-                            {sentenceCase(row.status)}
-                          </Label>
+                        <TableCell>
+                          {type === 'clock_in' || type === 'clockin' ? content : null}
+                          {/* <Text status="warning" size="sm">
+                            {data?.time.slice(11, 19)}, {data?.time.slice(0, 10)}
+                          </Text> */}
                         </TableCell>
 
                         <TableCell align="left">
-                          {row.Date.slice(0, 10)}, {row.Date.slice(11, 16)}
+                          <Label color="success">{sentenceCase(type)}</Label>
                         </TableCell>
 
-                        <TableCell align="left">{fMoney(row.total)}</TableCell>
+                        <TableCell align="left">
+                          {time.slice(0, 10)}, {time.slice(11, 16)}
+                        </TableCell>
 
                         <TableCell>
                           <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
@@ -284,7 +280,7 @@ export default function PackagesPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={packageList.length}
+            count={notiList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -292,14 +288,7 @@ export default function PackagesPage() {
           />
         </Card>
       </Container>
-      <DrawerCustom
-        menu={'createPackages'}
-        open={isOpenNew}
-        onClose={() => toggleDrawer()}
-        onSubmit={(value) => {
-          console.log(value);
-        }}
-      />
+
       <Popover
         open={Boolean(open)}
         anchorEl={open}

@@ -17,8 +17,8 @@ const navConfig = [
     icon: icon('ic_cube'),
   },
   {
-    title: 'blog',
-    path: '/dashboard/blog',
+    title: 'notification',
+    path: '/dashboard/notification',
     icon: icon('ic_blog'),
   },
   {
@@ -26,16 +26,16 @@ const navConfig = [
     path: '/dashboard/statistic',
     icon: icon('ic_analytics'),
   },
-  {
-    title: 'login',
-    path: '/login',
-    icon: icon('ic_lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic_disabled'),
-  },
+  //   {
+  //     title: 'login',
+  //     path: '/login',
+  //     icon: icon('ic_lock'),
+  //   },
+  //   {
+  //     title: 'Not found',
+  //     path: '/404',
+  //     icon: icon('ic_disabled'),
+  //   },
 ];
 
 export default navConfig;

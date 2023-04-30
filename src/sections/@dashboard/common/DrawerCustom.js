@@ -1,44 +1,34 @@
 import { Box, Button, Divider, Drawer, IconButton, Input, Stack, Typography } from '@mui/material';
+import { sentenceCase } from 'change-case';
 import React, { useEffect, useState } from 'react';
 import Iconify from '../../../components/iconify/Iconify';
 import Scrollbar from '../../../components/scrollbar/Scrollbar';
+import CreatePackages from './CreatePackages';
+import EditUser from './EditUser';
 
 export default function DrawerCustom(props) {
-  const { menu, open, onClose } = props;
-  const [children, setChildren] = useState();
+  const { menu, open, value, onClose, onSubmit } = props;
+  const [submitValue, setSubmitValue] = useState();
+
   useEffect(() => {
-    let children = {};
-    if (menu) {
-      switch (menu) {
-        case 'packages': {
-          children = (
-            <Stack spacing={1} sx={{ p: 3 }}>
-              <Typography variant="subtitle1">Discription</Typography>
-              <Input margin="none" value={''} onChange={(e) => {}} />
-              <Typography variant="subtitle1" style={{ marginTop: 20 }}>
-                Price
-              </Typography>
-              <Input margin="none" type="number" value={''} onChange={(e) => {}} />
-              <Typography variant="subtitle1" style={{ marginTop: 20 }}>
-                Weight
-              </Typography>
-              <Input margin="none" type="number" value={''} onChange={(e) => {}} />
-            </Stack>
-          );
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-      setChildren(children);
+    if (value) {
+      setSubmitValue(value);
     }
-  }, menu);
+  }, [value]);
+
+  const onChange = (key, value) => {
+    setSubmitValue({ ...submitValue, [key]: value });
+  };
+
+  const onSave = () => {
+    if (onSubmit) onSubmit(submitValue);
+  };
+
   return (
     <Drawer anchor={'right'} open={open} onClose={onClose}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1, py: 2, width: 350 }}>
         <Typography variant="subtitle1" sx={{ ml: 1 }}>
-          {false ? 'Edit' : 'Add'}
+          {menu && sentenceCase(menu)}
         </Typography>
         <IconButton onClick={onClose}>
           <Iconify icon="eva:close-fill" width={20} height={20} />
@@ -47,7 +37,13 @@ export default function DrawerCustom(props) {
 
       <Divider />
 
-      <Scrollbar sx={{ overflowY: 'auto' }}>{children}</Scrollbar>
+      <Scrollbar sx={{ overflowY: 'auto' }}>
+        {menu === 'createPackages' ? (
+          <CreatePackages onChange={onChange} value={submitValue} />
+        ) : menu === 'editUser' ? (
+          <EditUser onChange={onChange} value={submitValue} />
+        ) : null}
+      </Scrollbar>
 
       <Box sx={{ p: 3 }}>
         {false ? (
@@ -74,11 +70,9 @@ export default function DrawerCustom(props) {
             variant="contained"
             className="text-white border"
             startIcon={<Iconify icon="material-symbols:add-box-outline" />}
-            onClick={() => {
-              console.log('b');
-            }}
+            onClick={onSave}
           >
-            Add
+            Submit
           </Button>
         )}
       </Box>
